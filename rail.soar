@@ -1,0 +1,389 @@
+# @created vgobi 20210211
+
+# RAIL SOAR TRY
+
+
+#Initialize Engines on tracks
+
+
+sp {rail-soar*propose*initialize-rail-soar
+    (state <s> ^superstate nil
+               ^type state
+               -^name)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name initialize-rail-soar)
+    }
+
+sp {rail-soar*apply*initialize-rail-soar
+    (state <s> ^operator <o>)
+    (<o> ^name initialize-rail-soar) 
+-->
+    (<s> ^name rail-soar
+         ^engine <eng1> <eng2>)
+    (<eng1> ^name engine1
+            ^position right
+            ^front T
+            ^back NT
+            ^other <eng2>)
+    (<eng2> ^name engine2
+            ^position right
+            ^front NT
+            ^back T
+            ^other <eng1>)
+    } 
+
+
+#Elaborate Engine Positions on Tracks
+
+sp {monitor*train*count*on*tracks
+    (state <s> ^engine <eng1> <eng2>)
+    (<eng1> ^name engine1
+            ^position <pos1>
+            ^front <e1frnt>
+            ^back <e1back>)
+    (<eng2> ^name engine2
+            ^position <pos2>
+            ^front <e2frnt>
+            ^back <e2back>)
+-->
+    (write (crlf) | Engine1 Track:|<pos1>|  Front:|<e1frnt>|  Back:|<e1back>)
+    (write (crlf) | Engine2 Track:|<pos2>|  Front:|<e2frnt>|  Back:|<e2back>)
+    } 
+
+
+
+
+
+#Desired state detection
+
+sp {detect*desired*state
+    (state <s> ^engine <eng1> <eng2>)
+    (<eng1> ^name engine1
+            ^position right
+            ^front NT
+            ^back T)
+    (<eng2> ^name engine2
+            ^position right
+            ^front T
+            ^back NT)
+-->
+    (write (crlf) | Desired state reached | )
+    (halt)
+    }
+
+
+#To move engines from right/up to left
+
+sp {rail-soar*propose*move-train-to-left-1
+    (state <s> ^engine <eng>)
+    (<eng> ^position << up right >> <pos>
+           ^back NT
+           ^other <oteng>)
+    (<oteng> ^position <> <pos>)
+    (<oteng> ^position <> left)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-up*right-to-left
+         ^engine <eng>
+         ^position <pos>)
+    }
+
+
+sp {rail-soar*apply*move-train-to-left-1
+    (state <s> ^operator <o>)
+    (<o> ^name move-up*right-to-left
+         ^engine <eng>
+         ^position <pos>)
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^position <pos> -
+           ^position left)   
+ }
+
+
+#---------------
+
+
+
+sp {rail-soar*propose*move-train-to-left-2
+    (state <s> ^engine <eng>)
+    (<eng> ^position << up right >> <pos>
+           ^name <name>
+           ^back NT
+           ^other <oteng>)
+    (<oteng> ^position <pos>)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-up*right-to-left-2
+         ^engine <eng>
+         ^engname <name>
+         ^position <pos>)
+    }
+
+
+
+sp {rail-soar*apply*move-train-to-left-2
+    (state <s> ^operator <o>)
+    (<o> ^name move-up*right-to-left-2
+         ^engine <eng>
+         ^engname <name>
+         ^position <pos>)
+    (<eng> ^front <fnt>
+           ^back <back>
+           ^other <oteng>)
+    (<oteng> ^front <ofnt>
+             ^back <oback>)
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^name <name>
+           ^position <pos> -
+           ^position left
+           ^front <fnt> -
+           ^front NT
+           ^back <back> -
+           ^back NT 
+           ^other <oteng>)
+    (<oteng> ^back <oback> - 
+             ^back NT
+             ^front <ofnt> -
+             ^front NT)    
+ }
+
+#------------------
+
+sp {rail-soar*propose*move-train-to-left-3
+    (state <s> ^engine <eng>)
+    (<eng> ^position << up right >> <pos>
+           ^name <name>
+           ^back NT
+           ^other <oteng>)
+    (<oteng> ^position left)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-up*right-to-left-3
+         ^engine <eng>
+         ^engname <name>
+         ^position <pos>)
+    }
+
+
+
+sp {rail-soar*apply*move-train-to-left-3
+    (state <s> ^operator <o>)
+    (<o> ^name move-up*right-to-left-3
+         ^engine <eng>
+         ^engname <name>
+         ^position <pos>)
+    (<eng> ^front <fnt>
+           ^back <back>
+           ^other <oteng>)
+    (<oteng> ^front <ofnt>
+             ^back <oback>)
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^name <name>
+           ^position <pos> -
+           ^position left
+           ^front <fnt> -
+           ^front NT
+           ^back <back> -
+           ^back T 
+           ^other <oteng>)
+    (<oteng> ^back <oback> - 
+             ^back NT
+             ^front <ofnt> -
+             ^front T)    
+ }
+
+#---------------------
+
+#To move train from left to up/right
+
+
+sp {rail-soar*propose*move-train-to-right-up-1
+    (state <s> ^engine <eng>)
+    (<eng> ^position left
+           ^front NT
+           ^other <oteng>)
+    (<oteng> ^position << right up >> <pos>)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-left-to-right*up
+         ^engine <eng>
+         ^position <pos>)
+    }
+
+
+sp {rail-soar*apply*move-train-to-right-up-1
+    (state <s> ^operator <o>)
+    (<o> ^name move-left-to-right*up
+         ^engine <eng>
+         ^position <pos>)
+    (<eng> ^position <epos>
+           ^front <efront>
+           ^back <eback>
+           ^other <oteng>)
+    (<oteng> ^front <ofront>
+             ^back <oback>)
+    
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^position <epos> -
+           ^position <pos>
+           ^front <efront> -
+           ^front T
+           ^other <oteng>)
+    (<oteng> ^back <oback> - 
+             ^back T)   
+ }
+
+
+#To move train from left to up
+
+
+sp {rail-soar*propose*move-train-to-up
+    (state <s> ^engine <eng>)
+    (<eng> ^position left
+           ^front NT
+           ^other <oteng>)
+    (<oteng> ^position left)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-left-to-up
+         ^engine <eng>)
+    }
+
+
+sp {rail-soar*apply*move-train-to-up
+    (state <s> ^operator <o>)
+    (<o> ^name move-left-to-up
+         ^engine <eng>)
+    (<eng> ^position <epos>
+           ^front <efront>
+           ^back <eback>
+           ^other <oteng>)
+    (<oteng> ^front <ofront>
+             ^back <oback>)    
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^position <epos> -
+           ^position up
+           ^front <efront> -
+           ^front NT
+           ^back <eback> -
+           ^back NT
+           ^other <oteng>)
+    (<oteng> ^front <ofront> - 
+             ^front NT)   
+ }
+
+#To move train from left to right
+
+sp {rail-soar*propose*move-train-to-right
+    (state <s> ^engine <eng>)
+    (<eng> ^position left
+           ^front NT
+           ^other <oteng>)
+    (<oteng> ^position left)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-left-to-right
+         ^engine <eng>)
+    }
+
+
+sp {rail-soar*apply*move-train-to-right
+    (state <s> ^operator <o>)
+    (<o> ^name move-left-to-right
+         ^engine <eng>)
+    (<eng> ^position <epos>
+           ^front <efront>
+           ^back <eback>
+           ^other <oteng>)
+    (<oteng> ^front <ofront>
+             ^back <oback>)
+    
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^position <epos> -
+           ^position right
+           ^front <efront> -
+           ^front NT
+           ^back <eback> -
+           ^back NT
+           ^other <oteng>)
+    (<oteng> ^front <ofront> - 
+             ^front NT)   
+ }
+
+
+
+#To move train from left to up when other train is right
+
+
+sp {rail-soar*propose*move-train-to-up-2
+    (state <s> ^engine <eng>)
+    (<eng> ^position left
+           ^front NT
+           ^other <oteng>)
+    (<oteng> ^position right)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-left-to-up-otheng-right
+         ^engine <eng>)
+    }
+
+
+sp {rail-soar*apply*move-train-to-up-2
+    (state <s> ^operator <o>)
+    (<o> ^name move-left-to-up-otheng-right
+         ^engine <eng>)
+    (<eng> ^position <epos>
+           ^front <efront>
+           ^back <eback>)    
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^position <epos> -
+           ^position up
+           ^front <efront> -
+           ^front NT
+           ^back <eback> -
+           ^back NT)  
+ }
+
+#To move train from left to right
+
+sp {rail-soar*propose*move-train-to-right-2
+    (state <s> ^engine <eng>)
+    (<eng> ^position left
+           ^front NT
+           ^other <oteng>)
+    (<oteng> ^position up)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-left-to-right-otheng-up
+         ^engine <eng>)
+    }
+
+
+sp {rail-soar*apply*move-train-to-right-2
+    (state <s> ^operator <o>)
+    (<o> ^name move-left-to-right-otheng-up
+         ^engine <eng>)
+    (<eng> ^position <epos>
+           ^front <efront>
+           ^back <eback>)
+    
+-->
+    (<s> ^engine <eng>)           
+    (<eng> ^position <epos> -
+           ^position right
+           ^front <efront> -
+           ^front NT
+           ^back <eback> -
+           ^back NT)  
+ }
+
+
+
