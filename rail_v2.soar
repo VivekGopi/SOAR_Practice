@@ -1,0 +1,111 @@
+# @created vgobi 20210211
+
+# RAIL SOAR TRY
+
+
+#Initialize Engines on tracks
+
+
+sp {rail-soar*propose*initialize-rail-soar
+    (state <s> ^superstate nil
+               ^type state
+               -^name)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name initialize-rail-soar)
+    }
+
+sp {rail-soar*apply*initialize-rail-soar
+    (state <s> ^operator <o>)
+    (<o> ^name initialize-rail-soar) 
+-->
+    (<s> ^name rail-soar
+         ^engine <eng1> <eng2>
+         ^track <trk>)
+    (<eng1> ^track left
+            ^position 1)
+    (<eng2> ^track right
+            ^position 1)
+    (<trk> ^up 0
+           ^right 1
+           ^left 1)
+    } 
+
+#Elaborate Engine tracks on Tracks
+
+sp {monitor*train*count*on*tracks
+    (state <s> ^track <trk>
+               ^engine <eng>)
+    (<trk> ^up <upcnt>
+           ^right <rtcnt>
+           ^left <lftcnt>)
+    (<eng> ^track <trk>
+            ^position <pos>)
+-->
+    (write (crlf) | Number of trains on UP:|<upcnt>|  RIGHT:|<rtcnt>|  LEFT:|<lftcnt>)
+    (write (crlf) | Engine1 Track:|<trk>|  Position:|<pos>)
+    } 
+
+
+#Desired state detection
+
+sp {detect*desired*state
+    (state <s> ^name rail-soar
+                ^engine <eng1> <eng2>
+                ^track <trk>)
+    (<eng1> ^track left
+            ^position 2)
+    (<eng2> ^track left
+            ^position 1)
+    (<trk> ^up 0
+           ^right 0
+           ^left 2)
+-->
+    (write (crlf) | Desired state reached | )
+    (halt)
+    }
+
+
+#To move engines from right to left
+
+sp {rail-soar*propose*move-train-right-to-left
+    (state <s> ^engine <eng_l> <eng_r>
+               ^track <trk>)
+    (<eng_l> ^track left
+             ^position <pos_l>)
+    (<eng_r> ^track right
+             ^position 1)
+    (<trk> ^left <lftcnt>
+           ^right <rtcnt>)
+-->
+    (<s> ^operator <o> + =)
+    (<o> ^name move-right-to-left
+         ^engine_left <eng_l>
+         ^engine_right <eng_r>
+         ^left_position <pos_l>
+         ^left_track <lftcnt>
+         ^right_track <rtcnt>)
+    }
+
+
+sp {rail-soar*apply*move-train-right-to-left
+    (state <s> ^operator <o>
+               ^track <trk>)
+    (<o> ^name move-right-to-left
+         ^engine_left <eng_l>
+         ^engine_right <eng_r>
+         ^left_position <pos_l>
+         ^left_track <lftcnt>
+         ^right_track <rtcnt>)
+-->          
+    (<eng_r> ^track <trk> -
+             ^track left)
+    (<eng_l> ^position <pos_l> -
+             ^position (+ <pos_l> 1))
+    (<trk> ^left <lftcnt> -
+           ^left (+ <lftcnt> 1)
+           ^right <rtcnt> -
+           ^right (- <rtcnt> 1))                          
+ }
+
+
